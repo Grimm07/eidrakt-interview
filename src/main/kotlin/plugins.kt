@@ -38,15 +38,15 @@ fun Application.configurePlugins() {
         }
         exception<IllegalStateException> { call, cause ->
             call.application.environment.log.error("400: $cause")
-            call.respondText(text = "500: Illegal State Exception.", status = HttpStatusCode.BadRequest)
+            call.respondText(text = "400: Illegal State Exception.", status = HttpStatusCode.BadRequest)
         }
         exception<IllegalArgumentException> { call, cause ->
             call.application.environment.log.error("400: $cause")
-            call.respondText(text = "500: Internal Server Error.", status = HttpStatusCode.BadRequest)
+            call.respondText(text = "400: Illegal Argument Exception.", status = HttpStatusCode.BadRequest)
         }
         exception<BadRequestException> { call, cause ->
             call.application.environment.log.error("400: $cause")
-            call.respondText(text = "Bad Request: ${cause}", status = HttpStatusCode.BadRequest)
+            call.respondText(text = "400: ${cause}", status = HttpStatusCode.BadRequest)
         }
         exception<Throwable> { call, cause ->
             call.application.environment.log.error("500: $cause")

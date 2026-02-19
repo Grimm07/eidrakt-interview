@@ -3,6 +3,7 @@ package com.example
 import io.konform.validation.Validation
 import io.konform.validation.constraints.minimum
 import io.konform.validation.path.ValidationPath
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
 import kotlin.uuid.ExperimentalUuidApi
@@ -36,3 +37,15 @@ val registryRequestValidator = Validation {
 @Serializable
 data class RegistryRequest(val apiKey: String, val quota: Int, val timeLimit: Duration){
 }
+
+/**
+ * @property usageLeft - number of uses this token has left
+ * @property timeReset - amount of milliseconds until the next token is available
+ * */
+@Serializable
+data class UseRouteResponse(
+    @SerialName("usage-left")
+    val usageLeft: Int,
+    @SerialName("next-reset")
+    val timeReset: Long
+)
