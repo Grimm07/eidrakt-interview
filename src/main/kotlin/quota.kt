@@ -54,7 +54,7 @@ val quotaRoute = ServiceRoute { call ->
     while(deq.isNotEmpty() && getTimeDiff(curTime, deq.first()) > ttl.inWholeMilliseconds) deq.removeFirst()
     val timeToExpiry = if(deq.isNotEmpty()) (curTime - deq.first()).inWholeMilliseconds else 0L
     val usageLeft = (quota - deq.size).coerceAtLeast(0)
-    val responseCode = if(deq.size + 1 < quota) {
+    val responseCode = if(deq.size < quota) {
         deq.addLast(curTime)
         store[key] = deq
         HttpStatusCode.OK
