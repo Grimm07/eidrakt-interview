@@ -24,6 +24,7 @@ Additionally, for horizontal scaling, we must migrate out of an in-memory record
 - We must also handle the cases of deadlocks and race conditions for read & writes to storage to ensure the quota is not overused and/or updated incorrectly
   - Snapshot isolation is a common solution to this problem - here each transaction will read from a snapshot of the database to see all the transactions that exists at the start of the transaction
     - This is not helpful, on long-running processes (read-only queries like backups & analytics) due to potential data changes mid-transaction.
+    - There is also Serializable Snapshot Isolation, but this approach is still experimental
 - Another change that would need considered is schema changes. Considering the flexibility of the schema up front makes future changes easier to implement
 - Going along with the above bullet, serialization of the data is another part in need of consideration when choosing the correct data store for the solution
   - While JSON is easy for humans to read, it increases the data by around 33% - consider a binary data type if speed is an absolute must.

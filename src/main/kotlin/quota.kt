@@ -61,6 +61,7 @@ val quotaRoute = ServiceRoute { call ->
     } else {
         HttpStatusCode.TooManyRequests
     }
-    val response = mapOf("usage-left" to usageLeft, "next-reset" to timeToExpiry)
+    // note - toString due to mixing types (alternative is to switch to gson)
+    val response = mapOf("usage-left" to usageLeft.toString(), "next-reset" to timeToExpiry.toString())
     call.respond(responseCode, response)
 }
