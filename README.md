@@ -41,7 +41,8 @@ Another complexity that gets harder when scaling outside the same cluster (expon
 ### Generative AI Disclaimer
 - Generative AI was used to expand on the existing test suite.
 ### Tests / Example Payloads
-Tests are included under `src/test` - includes Unit & Stress Testing
+- Tests are included under `src/test` - includes Unit & Stress Testing
+- Example curl request is included in `curl_tests.sh`
 ## Features
 
 Here's a list of features included in this project:
