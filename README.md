@@ -11,9 +11,14 @@
 - Dependencies are managed in `gradle.properties` to keep them organized & centralized
 - I intentionally put the api-key into the MDC context & logs. In practice, you would **never** put items like this in MDC or logs, but due to the scope I put it in to convey the desire to track identification & independent requests
 ### Trade-offs
+- Used a deque to implement the sliding window - allows fast insertion & deletion at both ends 
+- Used a SAM interface instead of a regular interface for brevity - if more methods were desired (such as for handling errors per route), this would need modified
+- No localized error handling occurred - this could become problematic in a large API with many exceptions across many routes
 - JAR deliverable was selected to reduce complexity (in practice would opt for a containerized version)
-- Used a SAM interface instead of a regular one for brevity - if more methods were desired (such as for handling errors per route), this would need modified
-- Added stress tests 
+- Concurrency is handled via a concurrent map & key based mutexes. Could have used an actor w/ a channel, but would have increased complexity.
+- System clock was used inline instead of passed in -- for testibility this is a flaw
+- Opted for full kotlin build (no GSON / Java)
+- Did not modify the logback files for mdc context
 ### Changes for Scaling
 Turning this into a distributed system immediately changes the complexity of the project (as with any distributed component).
 
@@ -33,7 +38,7 @@ Additionally, for horizontal scaling, we must migrate out of an in-memory record
 Another complexity that gets harder when scaling outside the same cluster (exponentially so when scaling outside the same data center), is clock synchronization.
 - In a single cluster, where time synchronization is not high priority, you can use the system clock. When moving to a distributed cluster across continents, those system clocks become unreliable. Thus, you need to set up a synchronized time-server.
 
-### Where I used Generative AI
+### Generative AI Disclaimer
 - Generative AI was used to expand on the existing test suite.
 ### Tests / Example Payloads
 Tests are included under `src/test` - includes Unit & Stress Testing
