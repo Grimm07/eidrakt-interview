@@ -314,6 +314,88 @@ class ApplicationTest : FunSpec({
         }
     }
 
+    context("Registration Overwrite") {
+        test("Duplicate key without force returns 409 Conflict") {
+            testApplication {
+                application { module() }
+                val key = Uuid.random().toString()
+                client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 5, 10.seconds)))
+                }.status shouldBe HttpStatusCode.OK
+
+                client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 10, 10.seconds)))
+                }.status shouldBe HttpStatusCode.Conflict
+            }
+        }
+
+        test("Duplicate key with force=true overwrites successfully") {
+            testApplication {
+                application { module() }
+                val key = Uuid.random().toString()
+                client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 5, 10.seconds)))
+                }.status shouldBe HttpStatusCode.OK
+
+                val response = client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 10, 10.seconds, force = true)))
+                }
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText().contains("overwritten") shouldBe true
+            }
+        }
+
+        test("force=true on new key registers normally") {
+            testApplication {
+                application { module() }
+                val key = Uuid.random().toString()
+                val response = client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 5, 10.seconds, force = true)))
+                }
+                response.status shouldBe HttpStatusCode.OK
+                response.bodyAsText().contains("successfully") shouldBe true
+            }
+        }
+
+        test("Force overwrite clears stale usage") {
+            testApplication {
+                application { module() }
+                val key = Uuid.random().toString()
+                // Register with quota=2
+                client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 2, 10.seconds)))
+                }.status shouldBe HttpStatusCode.OK
+
+                // Exhaust quota
+                repeat(2) {
+                    client.get("/use") {
+                        header("X-Api-Key", key)
+                    }.status shouldBe HttpStatusCode.OK
+                }
+                client.get("/use") {
+                    header("X-Api-Key", key)
+                }.status shouldBe HttpStatusCode.TooManyRequests
+
+                // Force re-register with same quota
+                client.post("/register") {
+                    contentType(Application.Json)
+                    setBody(Json.encodeToString(RegistryRequest(key, 2, 10.seconds, force = true)))
+                }.status shouldBe HttpStatusCode.OK
+
+                // Usage should be reset - can use again
+                client.get("/use") {
+                    header("X-Api-Key", key)
+                }.status shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+
     context("Stress Tests") {
         test("Concurrent registration") {
             testApplication {

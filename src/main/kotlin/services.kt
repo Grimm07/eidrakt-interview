@@ -38,8 +38,19 @@ val registerRoute = ServiceRoute { call ->
     val params = call.receive<RegistryRequest>()
     val validation = registryRequestValidator.validate(params)
     require(validation.isValid) { validation.errors.toString() }
-    registry[params.apiKey] = Pair(params.timeLimit, params.quota)
-    call.respond(HttpStatusCode.OK)
+    val keyExists = registry.contains(params.apiKey)
+    if(keyExists && !params.force) {
+        call.respond(HttpStatusCode.Conflict, "Overwriting API Key is not permissible without the force flag.")
+    } else {
+        registry[params.apiKey] = Pair(params.timeLimit, params.quota)
+        val message = if(params.force && keyExists) {
+            store.remove(params.apiKey)
+            "API key registration overwritten."
+        } else {
+            "API key was registered successfully."
+        }
+        call.respond(HttpStatusCode.OK, message)
+    }
 }
 
 /**
@@ -53,21 +64,19 @@ val quotaRoute = ServiceRoute { call ->
     val getTimeDiff: (Instant, Instant) -> Long = { x, y -> (x - y).inWholeMilliseconds }
     val curTime = Clock.System.now() // note: for better testability, this would need passed in
     val deq = store.getOrPut(key) { ArrayDeque() }
-    var responseCode: HttpStatusCode? = null
-    var response: UseRouteResponse? = null
-    synchronized(deq) {
+
+    val (responseCode, response) = synchronized(deq) {
         // remove the old entries
         while(deq.isNotEmpty() && getTimeDiff(curTime, deq.first()) > ttl.inWholeMilliseconds) deq.removeFirst()
-        val timeToExpiry = if(deq.isNotEmpty()) (curTime - deq.first()).inWholeMilliseconds else 0L
+        val timeToExpiry = if(deq.isNotEmpty()) (ttl - (curTime - deq.first())).inWholeMilliseconds else 0L
         val usageLeft = (quota - deq.size - 1).coerceAtLeast(0)
-        responseCode = if(deq.size < quota) {
+        val responseCode = if(deq.size < quota) {
             deq.addLast(curTime)
             HttpStatusCode.OK
         } else {
             HttpStatusCode.TooManyRequests
         }
-        response = UseRouteResponse(usageLeft, timeToExpiry)
+        Pair(responseCode, UseRouteResponse(usageLeft, timeToExpiry))
     }
-    // note: we would want to fix this in practice
-    call.respond(responseCode!!, response!!)
+    call.respond(responseCode, response)
 }

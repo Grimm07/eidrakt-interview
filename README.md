@@ -58,7 +58,6 @@ Here's a list of features included in this project:
 | [Rate Limiting](https://start.ktor.io/p/ktor-server-rate-limiting)     |                    Manage request rate limiting as you see fit                     |
 | [Call ID](https://start.ktor.io/p/callid)                              |                         Allows to identify a request/call.                         |
 | [Kotest](https://kotest.io)                                            |                                 Testing Framework                                  |
-| [Mockk](https://mockk.io)                                              |                                   Mock Framework                                   |
 
 ## Building & Running
 

@@ -33,9 +33,10 @@ val registryRequestValidator = Validation {
  * @property apiKey - api key to register
  * @property quota - the number of uses permitted for this key
  * @property timeLimit - the time it takes to reset the quota
+ * @property force - force the registration (override existing)
  * */
 @Serializable
-data class RegistryRequest(val apiKey: String, val quota: Int, val timeLimit: Duration){
+data class RegistryRequest(val apiKey: String, val quota: Int, val timeLimit: Duration, val force: Boolean = false){
 }
 
 /**

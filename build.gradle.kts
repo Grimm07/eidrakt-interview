@@ -51,8 +51,6 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:${ktor_version}")
     implementation("io.ktor:ktor-server-config-yaml:${ktor_version}")
     implementation("io.konform:konform-jvm:${konform_version}")
-    // rate limiting
-    implementation("io.github.flaxoos:ktor-server-rate-limiting:2.2.1")
     // logging
     implementation("ch.qos.logback:logback-classic:$logback_version")
 
